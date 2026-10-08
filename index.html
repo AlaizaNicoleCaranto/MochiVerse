@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Character encoding for proper text rendering -->
+  <meta charset="UTF-8" />
+
+  <!-- Viewport for responsive design on all devices -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Browser tab favicon using mochii-logo.png from root folder -->
+  <link rel="icon" type="image/png" href="mochii-logo.png" />
+  <link rel="shortcut icon" type="image/png" href="mochii-logo.png" />
+
+  <!-- Apple Touch Icon for mobile home screen -->
+  <link rel="apple-touch-icon" href="mochii-logo.png" />
+
+  <!-- Page title shown in browser tab -->
+  <title> 🌸 MochiVerse 🌸 Dreamy Mochi 🌸</title>
+
+  <!-- Google Fonts: Five different fonts for the design system -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Fredoka+One&family=Nunito:wght@300;400;600;700&family=Quicksand:wght@400;500;600;700&family=Varela+Round&display=swap"
+    rel="stylesheet" />
+
+  <!-- Bootstrap CSS for responsive grid and components -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+  <!-- SQL.js library for client-side SQL database -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
+
+  <!-- Custom stylesheet for all MochiVerse styles -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <!-- Loading Overlay - Shows during database initialization and long operations -->
+  <div id="loading-overlay" class="loading-overlay">
+
+    <!-- Animated bouncing dots spinner -->
+    <div class="loading-spinner">
+      <div class="spinner-circle"></div>
+      <div class="spinner-circle delay-1"></div>
+      <div class="spinner-circle delay-2"></div>
+    </div>
+
+    <!-- Dynamic loading message -->
+    <p id="loading-message" class="loading-message">Loading MochiVerse...🌸</p>
+    <p class="loading-sub-message">Preparing your mochi experience</p>
+  </div>
+
+  <!-- Login Screen - Shown before user authenticates -->
+  <div id="login-screen" role="main" aria-label="Login screen">
+    <div class="login-hero">
+
+      <!-- Left side: Background image with overlay -->
+      <div class="login-image" role="img" aria-label="Mochi background image"></div>
+
+      <!-- Right side: Login form panel -->
+      <div class="login-panel">
+        <div class="login-card">
+
+          <!-- Decorative logo emoji -->
+          <div class="login-logo" aria-hidden="true">🌸</div>
+
+          <!-- Store name -->
+          <h1 class="login-title">MochiVerse</h1>
+          <p class="login-sub">Handcrafted mochi, Made your way</p>
+
+          <!-- Error message area for validation feedback -->
+          <div id="error-msg" class="error-msg" role="alert" aria-live="polite"></div>
+
+          <!-- Username input field -->
+          <div class="form-group">
+            <label for="login-user">Username</label>
+            <input type="text" id="login-user" placeholder="Enter username" aria-required="true"
+              onkeydown="if(event.key==='Enter')doAuth()" />
+          </div>
+
+          <!-- Email field - hidden by default, shown during registration -->
+          <div class="form-group register-only hidden">
+            <label for="login-email">Email</label>
+            <input type="email" id="login-email" placeholder="Enter email" aria-required="true"
+              onkeydown="if(event.key==='Enter')doAuth()" />
+          </div>
+
+          <!-- Password input field -->
+          <div class="form-group">
+            <label for="login-pass">Password</label>
+            <input type="password" id="login-pass" placeholder="Enter password" aria-required="true"
+              onkeydown="if(event.key==='Enter')doAuth()" />
+          </div>
+
+          <!-- Confirm password field - hidden by default, shown during registration -->
+          <div class="form-group register-only hidden">
+            <label for="login-confirm-pass">Confirm Password</label>
+            <input type="password" id="login-confirm-pass" placeholder="Confirm password" aria-required="true"
+              onkeydown="if(event.key==='Enter')doAuth()" />
+          </div>
+
+          <!-- Primary action button - changes between Sign In and Register -->
+          <button type="button" class="btn-primary" id="auth-btn" onclick="doAuth()">Sign In 🌸</button>
+
+          <!-- Toggle between login and register modes -->
+          <div class="login-toggle">
+            <span id="toggle-auth-text">Don't have an account?</span>
+            <button type="button" class="link-btn" id="toggle-auth-btn" onclick="toggleRegister()">Register</button>
+          </div>
+
+          <!-- Helper text showing demo account credentials -->
+          <div class="login-hint">
+            <span>Demo accounts: </span>
+            <strong>user</strong> / <span class="hint-text">user123</span>
+            <span class="hint-separator">•</span>
+            <strong>admin</strong> / <span class="hint-text">admin123</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main App - Visible after successful login -->
+  <div id="app" role="application">
+
+    <!-- Navigation Bar - Sticky header with brand and navigation links -->
+    <nav class="nav" role="navigation" aria-label="Main navigation">
+
+      <!-- Brand section with emoji and store name -->
+      <div class="nav-brand">
+        <span class="nav-icon">🌸</span>
+        <span>MochiVerse</span>
+      </div>
+
+      <!-- User navigation tabs - visible only to regular users -->
+      <div class="nav-links" id="user-nav" role="tablist">
+        <button type="button" class="nav-link active" role="tab" aria-selected="true"
+          onclick="showPage('home')">Home</button>
+        <button type="button" class="nav-link" role="tab" aria-selected="false" onclick="showPage('shop')">Shop</button>
+        <button type="button" class="nav-link" role="tab" aria-selected="false"
+          onclick="showPage('customize')">Customize</button>
+        <button type="button" class="nav-link" role="tab" aria-selected="false" onclick="showPage('my-orders')">My
+          Orders</button>
+      </div>
+
+      <!-- Admin navigation tabs - visible only to admin users -->
+      <div class="nav-links" id="admin-nav" style="display:none" role="tablist">
+        <button type="button" class="nav-link active" role="tab" aria-selected="true"
+          onclick="showAdminTab('admin-orders')">Orders</button>
+        <button type="button" class="nav-link" role="tab" aria-selected="false"
+          onclick="showAdminTab('admin-products')">Products</button>
+      </div>
+
+      <!-- Right side of navigation: Cart, User info, Logout -->
+      <div class="nav-right">
+
+        <!-- Shopping cart button with badge showing item count -->
+        <button type="button" class="cart-btn" id="cart-btn" onclick="toggleCart()" aria-label="Open shopping cart">🛒
+          <span class="cart-badge" id="cart-badge" aria-label="Cart items count">0</span>
+        </button>
+
+        <!-- User pill showing avatar and username -->
+        <div class="user-pill">
+          <div class="user-pill-avatar" id="user-avatar" aria-hidden="true">U</div>
+          <span id="user-label">User</span>
+        </div>
+
+        <!-- Logout button -->
+        <button type="button" class="logout-btn" onclick="doLogout()" aria-label="Sign out">Sign out</button>
+      </div>
+    </nav>
+
+    <!-- Home Page - Landing page with showcase and featured products -->
+    <div class="page active" id="page-home">
+
+      <!-- Hero showcase section with background slideshow -->
+      <section class="home-showcase" aria-label="Welcome to MochiVerse">
+
+        <!-- Three background images that cycle through fade animation -->
+        <div class="showcase-slide" style="background-image:url('assets/Mochi1.jpg')" role="img"
+          aria-label="Mochi showcase 1"></div>
+        <div class="showcase-slide" style="background-image:url('assets/Mochi2.jpg')" role="img"
+          aria-label="Mochi showcase 2"></div>
+        <div class="showcase-slide" style="background-image:url('assets/Mochi3.jpg')" role="img"
+          aria-label="Mochi showcase 3"></div>
+
+        <!-- Dark overlay for text readability -->
+        <div class="showcase-overlay"></div>
+
+        <!-- Hero text content -->
+        <div class="showcase-content">
+          <span class="showcase-pill">🌸 Welcome to MochiVerse 🌸</span>
+          <h1 class="showcase-title">Handcrafted Mochi,<br>Made Your Way</h1>
+          <p class="showcase-sub">Soft, Chewy, and Dreamy — Explore Our Collection or Build Your Own Mochi Masterpiece.
+          </p>
+
+          <!-- Scrolling marquee text -->
+          <div class="showcase-marquee" aria-hidden="true">
+            <div class="marquee-track">
+              <span>Soft. Chewy. Dreamy.</span>
+              <span>Fresh flavors daily.</span>
+              <span>Made with love.</span>
+              <span>Order your dream mochi.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Featured products section - shows top 5 products -->
+      <section class="featured-section" aria-label="Featured mochi flavors">
+        <div class="section-header">
+          <h2 class="section-title">Fan Favorites 🍡</h2>
+          <p class="section-sub">Our most-loved mochi flavors, freshly made every day.</p>
+        </div>
+
+        <!-- Grid container for featured products - populated by JavaScript -->
+        <div class="featured-grid" id="featured-grid"></div>
+
+        <!-- Button to navigate to full shop page -->
+        <div class="featured-cta-wrap">
+          <button type="button" class="btn-primary cta-btn" onclick="showPage('shop')">See All Flavors →</button>
+        </div>
+      </section>
+
+      <!-- Why MochiVerse section - three value propositions -->
+      <section class="why-section" aria-label="Why choose MochiVerse">
+        <div class="why-grid">
+          <div class="why-card">
+            <div class="why-icon">🧑‍🍳</div>
+            <h3>Handcrafted Daily</h3>
+            <p>Every mochi is made fresh by our skilled artisans using premium ingredients.</p>
+          </div>
+          <div class="why-card">
+            <div class="why-icon">🎨</div>
+            <h3>Customizable</h3>
+            <p>Choose your skin, filling, coating, and size — create your dream mochi.</p>
+          </div>
+          <div class="why-card">
+            <div class="why-icon">🚚</div>
+            <h3>Delivered to You</h3>
+            <p>Enjoy your mochi at home with our fast and reliable delivery service.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Shop Page - Displays all pre-built mochi products in a grid -->
+    <div class="page" id="page-shop">
+      <div class="page-header">
+        <h1 class="page-title">Our Mochi Collection</h1>
+        <p class="page-sub">Fresh, pillowy mochi — pick your favorites or build your own!</p>
+      </div>
+      <p class="section-label">Pre-Built Mochi</p>
+
+      <!-- Product grid - populated by JavaScript with skeleton loading -->
+      <div class="product-grid" id="product-grid"></div>
+    </div>
+
+    <!-- Customize Page - Step-by-step mochi builder -->
+    <div class="page" id="page-customize">
+      <div class="page-header">
+        <h1 class="page-title">Build Your Dream Mochi</h1>
+        <p class="page-sub">Mix and match your favorite layers to create a unique treat.</p>
+      </div>
+      <div class="customizer-layout">
+
+        <!-- Left side: Customization options in steps -->
+        <div>
+
+          <!-- Step 1: Choose size -->
+          <div class="step-card">
+            <div class="step-title"><span class="step-number">1</span> Size</div>
+            <div class="size-grid" id="size-options"></div>
+          </div>
+
+          <!-- Step 2: Choose mochi skin -->
+          <div class="step-card">
+            <div class="step-title"><span class="step-number">2</span> Mochi Skin</div>
+            <div class="option-grid" id="skin-options"></div>
+          </div>
+
+          <!-- Step 3: Choose filling -->
+          <div class="step-card">
+            <div class="step-title"><span class="step-number">3</span> Filling</div>
+            <div class="option-grid" id="filling-options"></div>
+          </div>
+
+          <!-- Step 4: Choose coating -->
+          <div class="step-card">
+            <div class="step-title"><span class="step-number">4</span> Coating</div>
+            <div class="option-grid" id="coating-options"></div>
+          </div>
+
+          <!-- Step 5: Quantity and special notes -->
+          <div class="step-card">
+            <div class="step-title"><span class="step-number">5</span> Quantity & Notes</div>
+            <div class="qty-control">
+              <button type="button" class="qty-btn" onclick="changeQty(-1)" aria-label="Decrease quantity">−</button>
+              <span class="qty-num" id="custom-qty">1</span>
+              <button type="button" class="qty-btn" onclick="changeQty(1)" aria-label="Increase quantity">+</button>
+            </div>
+            <textarea class="special-notes" id="special-notes"
+              placeholder="Any special requests? (e.g. extra sweet, less coating…)"></textarea>
+          </div>
+        </div>
+
+        <!-- Right side: Live preview panel showing current selection -->
+        <div class="customizer-preview">
+
+          <!-- Mochi visual representation -->
+          <div class="mochi-visual" id="mochi-preview" aria-label="Mochi preview">🍡</div>
+
+          <!-- Preview name based on selections -->
+          <div class="preview-name" id="preview-name">Your Custom Mochi</div>
+
+          <!-- Calculated price -->
+          <div class="preview-price" id="preview-price">₱ 0.00</div>
+
+          <!-- List of selected ingredients -->
+          <div class="preview-ingredients" id="custom-ingredients">
+            <div class="ingredient-empty">👆 Select your ingredients above</div>
+          </div>
+
+          <!-- Button to add custom mochi to cart -->
+          <button type="button" class="btn-primary add-custom-btn" onclick="addCustomToCart()">Add to Cart 🛒</button>
+          <p class="preview-hint">Complete all steps above to add your creation.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- My Orders Page - Shows user's order history -->
+    <div class="page" id="page-my-orders">
+      <div class="page-header">
+        <h1 class="page-title">My Orders</h1>
+        <p class="page-sub">Track all your mochi orders.</p>
+      </div>
+
+      <!-- Container for order list - populated by JavaScript -->
+      <div id="my-orders-list"></div>
+    </div>
+
+    <!-- Admin Page - Dashboard for managing orders and products -->
+    <div class="page" id="page-admin">
+      <div class="page-header">
+        <h1 class="page-title">Admin Dashboard</h1>
+        <p class="page-sub">Manage orders and products.</p>
+      </div>
+
+      <!-- Admin sub-tabs -->
+      <div class="admin-tabs" role="tablist">
+        <button type="button" class="admin-tab active" role="tab" aria-selected="true"
+          onclick="showAdminTab('admin-orders')">📋 Orders</button>
+        <button type="button" class="admin-tab" role="tab" aria-selected="false"
+          onclick="showAdminTab('admin-products')">🍡 Products</button>
+      </div>
+
+      <!-- Orders sub-page - shows all orders and statistics -->
+      <div class="admin-sub-page active" id="admin-orders">
+
+        <!-- Statistics cards - total orders, pending, preparing, revenue -->
+        <div class="stats-grid" id="stats-grid"></div>
+        <p class="section-label">All Orders</p>
+
+        <div class="table-wrap">
+          <table class="orders-table" id="orders-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Delivery</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="orders-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Products sub-page - manage product catalog -->
+      <div class="admin-sub-page" id="admin-products">
+        <div class="manage-grid">
+
+          <!-- Left: Product list with edit/delete buttons -->
+          <div>
+            <p class="section-label">Product List</p>
+            <div class="table-wrap">
+              <div id="product-list-admin"></div>
+            </div>
+          </div>
+
+          <!-- Right: Add new product form -->
+          <div>
+            <p class="section-label">Add New Product</p>
+            <div class="card add-product-form">
+              <div class="form-group">
+                <label for="np-name">Product Name</label>
+                <input type="text" id="np-name" placeholder="e.g. Strawberry Dream" />
+              </div>
+              <div class="form-group">
+                <label for="np-desc">Description</label>
+                <input type="text" id="np-desc" placeholder="Short description" />
+              </div>
+              <div class="form-group">
+                <label for="np-price">Price (₱)</label>
+                <input type="number" id="np-price" placeholder="e.g. 75" />
+              </div>
+              <div class="form-group">
+                <label for="np-emoji">Emoji</label>
+                <input type="text" id="np-emoji" placeholder="e.g. 🍓" />
+              </div>
+              <div class="form-group">
+                <label for="np-color">Color (hex)</label>
+                <input type="color" id="np-color" value="#F9A8BF" />
+              </div>
+              <button type="button" class="btn-primary add-product-btn" onclick="addProduct()">Add Product 🌸</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Product Modal - Popup for editing product details -->
+  <div class="modal-overlay" id="edit-modal" role="dialog" aria-label="Edit product">
+    <div class="edit-panel">
+      <div class="edit-header">
+        <h3>✏️ Edit Product</h3>
+        <button type="button" class="close-btn" onclick="closeEditModal()" aria-label="Close edit">✕</button>
+      </div>
+      <div class="edit-body">
+
+        <!-- Hidden field to store product ID being edited -->
+        <input type="hidden" id="edit-product-id" />
+
+        <!-- Product name input -->
+        <div class="form-group">
+          <label for="edit-name">Product Name</label>
+          <input type="text" id="edit-name" placeholder="Product name" />
+        </div>
+
+        <!-- Product description input -->
+        <div class="form-group">
+          <label for="edit-desc">Description</label>
+          <input type="text" id="edit-desc" placeholder="Description" />
+        </div>
+
+        <!-- Product price input -->
+        <div class="form-group">
+          <label for="edit-price">Price (₱)</label>
+          <input type="number" id="edit-price" placeholder="Price" step="0.01" />
+        </div>
+
+        <!-- Product emoji input -->
+        <div class="form-group">
+          <label for="edit-emoji">Emoji</label>
+          <input type="text" id="edit-emoji" placeholder="e.g. 🍓" />
+        </div>
+
+        <!-- Product color picker -->
+        <div class="form-group">
+          <label for="edit-color">Color (hex)</label>
+          <input type="color" id="edit-color" value="#F9A8BF" />
+        </div>
+
+        <!-- Action buttons -->
+        <div class="edit-actions">
+          <button type="button" class="btn-primary" onclick="saveProductEdit()">💾 Save Changes</button>
+          <button type="button" class="btn-secondary" onclick="closeEditModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart Modal - Shopping cart overlay -->
+  <div class="modal-overlay" id="cart-modal" role="dialog" aria-label="Shopping cart">
+    <div class="cart-panel">
+      <div class="cart-header">
+        <h3>Your Cart 🛒</h3>
+        <button type="button" class="close-btn" onclick="toggleCart()" aria-label="Close cart">✕</button>
+      </div>
+
+      <!-- Cart items container -->
+      <div class="cart-items" id="cart-items"></div>
+
+      <div class="cart-footer" id="cart-footer">
+
+        <!-- Cart total and confirm order button -->
+        <div class="cart-total">
+          <span>Total</span>
+          <span class="cart-total-price" id="cart-total">₱ 0.00</span>
+        </div>
+        <button type="button" class="btn-primary confirm-order-btn" id="confirm-order-btn" onclick="showOrderOptions()">Confirm Order 🌸</button>
+
+        <!-- Delivery information form (revealed after confirmation) -->
+        <div class="delivery-section hidden" id="delivery-section">
+          <p class="section-label delivery-label">Delivery Info</p>
+          <div class="order-form">
+            <div class="form-field full">
+              <label for="o-name">Full Name <span class="required-star">*</span></label>
+              <input type="text" id="o-name" placeholder="Your name" />
+            </div>
+            <div class="form-field">
+              <label for="o-phone">Phone <span class="required-star">*</span></label>
+              <input type="text" id="o-phone" placeholder="09xx" />
+            </div>
+            <div class="form-field">
+              <label for="o-type">Delivery Type</label>
+              <select id="o-type" onchange="updateDeliveryFields()">
+                <option>Delivery</option>
+                <option>Pick-up</option>
+              </select>
+            </div>
+            <div class="form-field full" id="address-field">
+              <label for="o-address">Address</label>
+              <input type="text" id="o-address" placeholder="Your address" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Place order button is shown only after order confirmation -->
+        <button type="button" class="btn-primary place-order-btn hidden" id="place-order-btn" onclick="placeOrder()">Place Order 🌸</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification - Temporary popup messages for user feedback -->
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Bootstrap JS bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Main application JavaScript -->
+  <script src="mochi.js"></script>
+</body>
+
+</html>
